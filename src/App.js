@@ -14,11 +14,11 @@ function App() {
   const savedTasks = JSON.parse(localStorage.getItem("card")) || [];
   const [card, setCard] = useState(savedTasks);
 
-  function addTask(name) {
-    const newTask = { id: nanoid(), name, completed: false, status: "Todo"  };
-    const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
-    saveTasksToLocalStorage(updatedTasks);
+  function addTask(cards) {
+    const newTask = {name: cards.name, id: cards.id  };
+    const updatedCards = [...cards, setCard];
+    setCard(updatedCards);
+    saveTasksToLocalStorage(updatedCards);
   }
 
   const content = [
@@ -41,7 +41,7 @@ function App() {
 
   console.log(savedTasks);
 
-  localStorage.clear();
+  //localStorage.clear();
 
   const saveTasksToLocalStorage = localStorage.setItem(
     "card",
@@ -62,7 +62,7 @@ function App() {
   return (
     <ChakraProvider>
       <Container maxW="container.sm" mt={5}>
-        <Box padding="4" bg="black" color="black" maxW="md" float="left" className="container">
+        <Box padding="4" bg="black" color="blue" maxW="md" float="left" className="container">
           <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <Heading as="h1" size="xl" mb={5}>
               Ejemplo de prueba
@@ -74,7 +74,7 @@ function App() {
             </SortableContext>
           </DndContext>
           
-          <AddCard />
+          <AddCard props={addTask}/>
         </Box>
       </Container>
 
