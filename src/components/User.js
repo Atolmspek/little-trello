@@ -25,6 +25,8 @@ function User({ user }) {
       bg='#CBD5E0'
       p={3}
       mb={4}
+      padding="4"
+      width="100%"
     >
       <Text>{user.Name}</Text>
     </Box>

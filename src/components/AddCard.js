@@ -6,6 +6,8 @@ import {
   Input,
 } from "@chakra-ui/react";
 
+
+
 function AddCard(props) {
   const [Text, setText] = useState("");
 
@@ -21,8 +23,8 @@ function AddCard(props) {
 
   return (
     <Box as="form" onSubmit={handleSubmit}>
-      <FormControl>
-        <Input
+      <FormControl margin="auto">
+        <Input size='xs'
           type="text"
           id="new-todo-input"
           name="text"
@@ -31,12 +33,12 @@ function AddCard(props) {
           value={Text}
           onChange={handleChange}
           required
-          bg="white" // Cambia el color de fondo a blanco (puedes usar el color que desees)
-        />
-      </FormControl>
-      <Button type="submit" colorScheme="teal" size="lg" mt={2}>
-        Add new Card
+          bg="white"/>
+           <Button type="submit" colorScheme="teal"  size="xs"  mt={2}>
+        ➕ Add card
       </Button>
+      </FormControl>
+     
     </Box>
   );
 }

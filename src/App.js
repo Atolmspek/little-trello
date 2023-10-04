@@ -13,20 +13,24 @@ import {
   Container,
   Button,
   Box,
+  Flex,
   VStack,
 } from "@chakra-ui/react";
+import Navbar from "./components/Navbar";
 
 function App() {
+
+  localStorage.clear();
   const content = [
     {
-      id: 1,
+      id: nanoid(),
       cards: [
         { Name: "hola", id: nanoid() },
         { Name: "hallo", id: nanoid() },
       ],
     },
     {
-      id: 2,
+      id: nanoid(),
       cards: [
         { Name: "hi!", id: nanoid() },
         { Name: "Konichiwa", id: nanoid() },
@@ -34,7 +38,10 @@ function App() {
     },
   ];
 
-  const [lists, setLists] = useState(content);
+  const localStorageJSON = localStorage.getItem('card');
+  const userData = localStorageJSON ? JSON.parse(localStorageJSON) : [];
+
+  const [lists, setLists] = useState(userData);
 
   const saveTasksToLocalStorage = (updatedCards) =>
     localStorage.setItem("card", JSON.stringify(updatedCards));
@@ -63,11 +70,15 @@ function App() {
       const updatedLists = [...currentLists];
 
       const sourceListIndex = updatedLists.findIndex(
-        (list) => list.id === active.id
+        (list) => list.cards.some((card) => card.id === active.id)
       );
       const targetListIndex = updatedLists.findIndex(
-        (list) => list.id === over.id
+        (list) => list.cards.some((card) => card.id === over.id)
       );
+
+      if (sourceListIndex === -1 || targetListIndex === -1) {
+        return currentLists;
+      }
 
       const sourceList = updatedLists[sourceListIndex];
       const targetList = updatedLists[targetListIndex];
@@ -81,19 +92,20 @@ function App() {
 
       const movedCard = sourceList.cards[oldIndex];
 
-      // Remueve la tarjeta de la lista de origen
+      //Removes card from the original position
       sourceList.cards.splice(oldIndex, 1);
 
-      // Inserta la tarjeta en la lista de destino
+      // Adds the card to the destination position
       targetList.cards.splice(newIndex, 0, movedCard);
 
       return updatedLists;
     });
   };
 
-  // Función para agregar una nueva lista
+
   function createList() {
     const newList = {
+      title: "Prueba",
       id: nanoid(),
       cards: [],
     };
@@ -102,10 +114,18 @@ function App() {
 
   return (
     <ChakraProvider>
-      {/* Renderiza las listas */}
+      <Navbar createList={createList}/>
+     <Flex flexWrap="wrap">
       {lists.map((list) => (
-        <Container key={list.id} maxW="container.sm" mt={5}>
-          <Box padding="4" bg="gray.100" borderRadius="lg" boxShadow="md">
+        <Container key={list.id} maxW="400px" mt={5}>
+      
+          <Box 
+             padding="4"
+             bg="gray.100"
+             borderRadius="lg"
+             boxShadow="md"
+             
+             >
             <DndContext
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
@@ -114,20 +134,21 @@ function App() {
                 items={list.cards}
                 strategy={verticalListSortingStrategy}
               >
-                <VStack spacing={4}>
+                
                   {list.cards.map((card) => (
                     <User user={card} key={card.id} />
                   ))}
-                </VStack>
+               
               </SortableContext>
             </DndContext>
             <AddCard addTask={(Name) => addTask(list.id, Name)} />
           </Box>
+          
         </Container>
       ))}
-      <Button colorScheme="teal" onClick={createList}>
-        New List
-      </Button>
+      
+      
+      </Flex>
     </ChakraProvider>
   );
 }
