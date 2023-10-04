@@ -22,7 +22,7 @@ function User({ user }) {
       {...attributes}
       {...listeners}
       boxShadow="base"
-      bg='darkgrey'
+      bg='#CBD5E0'
       p={3}
       mb={4}
     >

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -8,79 +8,129 @@ import {
 import User from "./components/User";
 import AddCard from "./components/AddCard";
 import { nanoid } from "nanoid";
-import { ChakraProvider, Container, Heading, Box } from "@chakra-ui/react";
+import {
+  ChakraProvider,
+  Container,
+  Button,
+  Box,
+  VStack,
+} from "@chakra-ui/react";
 
 function App() {
-  const savedTasks = JSON.parse(localStorage.getItem("card")) || [];
-  const [card, setCard] = useState(savedTasks);
-
-  function addTask(cards) {
-    const newTask = {name: cards.name, id: cards.id  };
-    const updatedCards = [...cards, setCard];
-    setCard(updatedCards);
-    saveTasksToLocalStorage(updatedCards);
-  }
-
   const content = [
     {
-      Name:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-      id: nanoid(),
+      id: 1,
+      cards: [
+        { Name: "hola", id: nanoid() },
+        { Name: "hallo", id: nanoid() },
+      ],
     },
     {
-      Name:
-        "Sed ut perspiciatis undm ad minimllam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?",
-      id: nanoid(),
-    },
-    {
-      Name:
-        "At vero eos et accusamus et iid rerum f bis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.",
-      id: nanoid(),
+      id: 2,
+      cards: [
+        { Name: "hi!", id: nanoid() },
+        { Name: "Konichiwa", id: nanoid() },
+      ],
     },
   ];
 
-  console.log(savedTasks);
+  const [lists, setLists] = useState(content);
 
-  //localStorage.clear();
+  const saveTasksToLocalStorage = (updatedCards) =>
+    localStorage.setItem("card", JSON.stringify(updatedCards));
 
-  const saveTasksToLocalStorage = localStorage.setItem(
-    "card",
-    JSON.stringify(content)
-  );
+  function addTask(rowId, Name) {
+    const newTask = { Name, id: nanoid() };
+
+    const updatedLists = lists.map((list) => {
+      if (list.id === rowId) {
+        return {
+          ...list,
+          cards: [...list.cards, newTask],
+        };
+      }
+      return list;
+    });
+
+    setLists(updatedLists);
+    saveTasksToLocalStorage(updatedLists);
+  }
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
-    setCard((card) => {
-      const oldIndex = card.findIndex((original) => original.id === active.id);
-      const newIndex = card.findIndex((target) => target.id === over.id);
+    setLists((currentLists) => {
+      const updatedLists = [...currentLists];
 
-      return arrayMove(card, oldIndex, newIndex);
+      const sourceListIndex = updatedLists.findIndex(
+        (list) => list.id === active.id
+      );
+      const targetListIndex = updatedLists.findIndex(
+        (list) => list.id === over.id
+      );
+
+      const sourceList = updatedLists[sourceListIndex];
+      const targetList = updatedLists[targetListIndex];
+
+      const oldIndex = sourceList.cards.findIndex(
+        (card) => card.id === active.id
+      );
+      const newIndex = targetList.cards.findIndex(
+        (card) => card.id === over.id
+      );
+
+      const movedCard = sourceList.cards[oldIndex];
+
+      // Remueve la tarjeta de la lista de origen
+      sourceList.cards.splice(oldIndex, 1);
+
+      // Inserta la tarjeta en la lista de destino
+      targetList.cards.splice(newIndex, 0, movedCard);
+
+      return updatedLists;
     });
   };
 
+  // Función para agregar una nueva lista
+  function createList() {
+    const newList = {
+      id: nanoid(),
+      cards: [],
+    };
+    setLists([...lists, newList]);
+  }
+
   return (
     <ChakraProvider>
-      <Container maxW="container.sm" mt={5}>
-        <Box padding="4" bg="black" color="blue" maxW="md" float="left" className="container">
-          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <Heading as="h1" size="xl" mb={5}>
-              Ejemplo de prueba
-            </Heading>
-            <SortableContext items={card} strategy={verticalListSortingStrategy}>
-              {card.map((user) => (
-                <User user={user} id={user} key={user.id} />
-              ))}
-            </SortableContext>
-          </DndContext>
-          
-          <AddCard props={addTask}/>
-        </Box>
-      </Container>
-
-      
+      {/* Renderiza las listas */}
+      {lists.map((list) => (
+        <Container key={list.id} maxW="container.sm" mt={5}>
+          <Box padding="4" bg="gray.100" borderRadius="lg" boxShadow="md">
+            <DndContext
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={list.cards}
+                strategy={verticalListSortingStrategy}
+              >
+                <VStack spacing={4}>
+                  {list.cards.map((card) => (
+                    <User user={card} key={card.id} />
+                  ))}
+                </VStack>
+              </SortableContext>
+            </DndContext>
+            <AddCard addTask={(Name) => addTask(list.id, Name)} />
+          </Box>
+        </Container>
+      ))}
+      <Button colorScheme="teal" onClick={createList}>
+        New List
+      </Button>
     </ChakraProvider>
   );
 }
 
 export default App;
+
