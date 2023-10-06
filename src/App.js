@@ -13,6 +13,8 @@ import {
   Box,
   Flex,
   Text,
+  Input,
+  Button,
 } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 
@@ -45,7 +47,7 @@ function App() {
   const saveTasksToLocalStorage = (updatedCards) =>
     localStorage.setItem("card", JSON.stringify(updatedCards));
 
-  function addTask(rowId, Name) {
+  const addTask = (rowId, Name) => {
     const newTask = { Name, id: nanoid() };
 
     const updatedLists = lists.map((list) => {
@@ -60,14 +62,16 @@ function App() {
 
     setLists(updatedLists);
     saveTasksToLocalStorage(updatedLists);
-  }
+  };
 
-  function deleteCard(id) {
-    console.log(id);
-    const remainingCards = lists.filter((list) => id !== list.id);
+  const deleteCard = (id) => {
+    const remainingCards = lists.map((list) => ({
+      ...list,
+      cards: list.cards.filter((card) => card.id !== id),
+    }));
     setLists(remainingCards);
-   // saveTasksToLocalStorage(remainingCards);
-  }
+    saveTasksToLocalStorage(remainingCards);
+  };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -108,24 +112,70 @@ function App() {
     });
   };
 
-  function createList() {
+  const createList = () => {
     const newList = {
       title: "Prueba",
       id: nanoid(),
       cards: [],
     };
     setLists([...lists, newList]);
-  }
+  };
+
+  const handleTitleClick = (index) => {
+    const updatedLists = lists.map((list, listIndex) => {
+      if (listIndex === index) {
+        return { ...list, editMode: true };
+      }
+      return list;
+    });
+    setLists(updatedLists);
+  };
+
+  const handleTitleEditSave = (index) => {
+    const updatedLists = lists.map((list, listIndex) => {
+      if (listIndex === index) {
+        return { ...list, title: list.editedTitle, editMode: false };
+      }
+      return list;
+    });
+    setLists(updatedLists);
+    // Guarda el título editado en el almacenamiento local si es necesario
+    // saveTasksToLocalStorage(updatedLists);
+  };
 
   return (
     <ChakraProvider>
       <Navbar createList={createList} />
       <Flex flexWrap="wrap">
-        {lists.map((list) => (
-          
+        {lists.map((list, index) => (
           <Container key={list.id} maxW="400px" mt={5}>
             <Box padding="4" bg="gray.100" borderRadius="lg" boxShadow="md">
-              <Text fontWeight={700} mb={3}>{list.title}</Text>
+              {list.editMode ? (
+                <Flex>
+                  <Input
+                    value={list.editedTitle}
+                    onChange={(e) => {
+                      const updatedLists = lists.map((item, i) => {
+                        if (i === index) {
+                          return { ...item, editedTitle: e.target.value };
+                        }
+                        return item;
+                      });
+                      setLists(updatedLists);
+                    }}
+                  />
+                  <Button onClick={() => handleTitleEditSave(index)}>Save</Button>
+                </Flex>
+              ) : (
+                <Text
+                  fontWeight={700}
+                  mb={3}
+                  onClick={() => handleTitleClick(index)}
+                  cursor="pointer"
+                >
+                  {list.title}
+                </Text>
+              )}
               <DndContext
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
@@ -135,9 +185,12 @@ function App() {
                   strategy={verticalListSortingStrategy}
                 >
                   {list.cards.map((card) => (
-                    <User user={card} key={card.id} deleteCard={() => deleteCard(card.id)} />
+                    <User
+                      user={card}
+                      key={card.id}
+                      deleteCard={() => deleteCard(card.id)}
+                    />
                   ))}
-                 
                 </SortableContext>
               </DndContext>
               <AddCard addTask={(Name) => addTask(list.id, Name)} />
