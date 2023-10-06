@@ -3,10 +3,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Text, Box, Button } from "@chakra-ui/react";
 
-function User({ user }) {
+function Card({ user: props }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: user.id,
+      id: props.id,
     });
 
   const [isHovered, setIsHovered] = useState(false);
@@ -42,12 +42,12 @@ function User({ user }) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <Text>{user.Name}</Text>
+      <Text>{props.Name}</Text>
       {isHovered && (
         <Button
           size="sm"
           colorScheme="red"
-          onClick={() => user.deleteCard(user.id)}
+          onClick={() => props.deleteCard(props.id)}
          
         >
           X
@@ -57,4 +57,4 @@ function User({ user }) {
   );
 }
 
-export default User;
+export default Card;

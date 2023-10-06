@@ -4,7 +4,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import User from "./components/User";
+import Card from "./components/Card";
 import AddCard from "./components/AddCard";
 import { nanoid } from "nanoid";
 import {
@@ -19,7 +19,7 @@ import {
 import Navbar from "./components/Navbar";
 
 function App() {
-  localStorage.clear();
+  //localStorage.clear();
   const content = [
     {
       title: "Tarjeta 1",
@@ -114,7 +114,7 @@ function App() {
 
   const createList = () => {
     const newList = {
-      title: "Prueba",
+      title: "Click to edit mec",
       id: nanoid(),
       cards: [],
     };
@@ -185,7 +185,7 @@ function App() {
                   strategy={verticalListSortingStrategy}
                 >
                   {list.cards.map((card) => (
-                    <User
+                    <Card
                       user={card}
                       key={card.id}
                       deleteCard={() => deleteCard(card.id)}
