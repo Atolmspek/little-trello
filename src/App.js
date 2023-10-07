@@ -18,23 +18,23 @@ import {
 } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 
-function App() {
+export default function App(props) {
   //localStorage.clear();
   const content = [
     {
       title: "Tarjeta 1",
-      id: nanoid(),
+      listId: nanoid(),
       cards: [
-        { Name: "hola", id: nanoid() },
-        { Name: "hallo", id: nanoid() },
+        { text: "hola", idCard: nanoid() },
+        { text: "hallo", idCard: nanoid() },
       ],
     },
     {
       title: "Tarjeta 2",
-      id: nanoid(),
+      listId: nanoid(),
       cards: [
-        { Name: "hi!", id: nanoid() },
-        { Name: "Konichiwa", id: nanoid() },
+        { text: "hi!", idCard: nanoid() },
+        { text: "Konichiwa", idCard: nanoid() },
       ],
     },
   ];
@@ -47,14 +47,14 @@ function App() {
   const saveTasksToLocalStorage = (updatedCards) =>
     localStorage.setItem("card", JSON.stringify(updatedCards));
 
-  const addTask = (rowId, Name) => {
-    const newTask = { Name, id: nanoid() };
+  const addCard = (text, listId) => {
+    const newCard = { text, idCard: nanoid() };
 
     const updatedLists = lists.map((list) => {
-      if (list.id === rowId) {
+      if (listId === list.listId) {
         return {
           ...list,
-          cards: [...list.cards, newTask],
+          cards: [...list.cards, newCard],
         };
       }
       return list;
@@ -64,26 +64,55 @@ function App() {
     saveTasksToLocalStorage(updatedLists);
   };
 
-  const deleteCard = (id) => {
-    const remainingCards = lists.map((list) => ({
+  const deleteCard = (idCard) => {
+    const updatedLists = lists.map((list) => ({
       ...list,
-      cards: list.cards.filter((card) => card.id !== id),
+      cards: list.cards.filter((card) => card.idCard !== idCard),
     }));
-    setLists(remainingCards);
-    saveTasksToLocalStorage(remainingCards);
+
+    setLists(updatedLists);
+
+    saveTasksToLocalStorage(updatedLists);
   };
 
+  function editCard(idCard, newText) {
+   
+    const updatedLists = lists.map((list) => {
+   
+      const updatedCards = list.cards.map((card) => {
+        if (idCard === card.idCard) {
+          
+          return { ...card, text: newText };
+        }
+        return card;
+      });
+  
+     
+      return {
+        ...list,
+        cards: updatedCards,
+      };
+    });
+  
+    // Actualiza el estado con las listas actualizadas
+    setLists(updatedLists);
+  
+    // Guarda en el almacenamiento local
+    saveTasksToLocalStorage(updatedLists);
+  }
+
   const handleDragEnd = (event) => {
+    console.log('Hola soy drag end');
     const { active, over } = event;
 
     setLists((currentLists) => {
       const updatedLists = [...currentLists];
 
       const sourceListIndex = updatedLists.findIndex((list) =>
-        list.cards.some((card) => card.id === active.id)
+        list.cards.some((card) => card.idCard === active.idCard)
       );
       const targetListIndex = updatedLists.findIndex((list) =>
-        list.cards.some((card) => card.id === over.id)
+        list.cards.some((card) => card.idCard === over.idCard)
       );
 
       if (sourceListIndex === -1 || targetListIndex === -1) {
@@ -94,10 +123,10 @@ function App() {
       const targetList = updatedLists[targetListIndex];
 
       const oldIndex = sourceList.cards.findIndex(
-        (card) => card.id === active.id
+        (card) => card.idCard === active.idCard
       );
       const newIndex = targetList.cards.findIndex(
-        (card) => card.id === over.id
+        (card) => card.idCard === over.idCard
       );
 
       const movedCard = sourceList.cards[oldIndex];
@@ -114,7 +143,7 @@ function App() {
 
   const createList = () => {
     const newList = {
-      title: "Click to edit mec",
+      title: "Click to edit me",
       id: nanoid(),
       cards: [],
     };
@@ -139,8 +168,7 @@ function App() {
       return list;
     });
     setLists(updatedLists);
-    // Guarda el título editado en el almacenamiento local si es necesario
-    // saveTasksToLocalStorage(updatedLists);
+    saveTasksToLocalStorage(updatedLists);
   };
 
   return (
@@ -148,7 +176,7 @@ function App() {
       <Navbar createList={createList} />
       <Flex flexWrap="wrap">
         {lists.map((list, index) => (
-          <Container key={list.id} maxW="400px" mt={5}>
+          <Container key={list.listId} maxW="400px" mt={5}>
             <Box padding="4" bg="gray.100" borderRadius="lg" boxShadow="md">
               {list.editMode ? (
                 <Flex>
@@ -164,7 +192,9 @@ function App() {
                       setLists(updatedLists);
                     }}
                   />
-                  <Button onClick={() => handleTitleEditSave(index)}>Save</Button>
+                  <Button onClick={() => handleTitleEditSave(index)}>
+                    Save
+                  </Button>
                 </Flex>
               ) : (
                 <Text
@@ -186,14 +216,16 @@ function App() {
                 >
                   {list.cards.map((card) => (
                     <Card
-                      user={card}
-                      key={card.id}
-                      deleteCard={() => deleteCard(card.id)}
+                      idCard={card.idCard}
+                      text={card.text}
+                      key={card.idCard}
+                      deleteCard={deleteCard}
+                      editCard={editCard}
                     />
                   ))}
                 </SortableContext>
               </DndContext>
-              <AddCard addTask={(Name) => addTask(list.id, Name)} />
+              <AddCard addTask={(text) => addCard(text, list.listId)} />
             </Box>
           </Container>
         ))}
@@ -201,5 +233,3 @@ function App() {
     </ChakraProvider>
   );
 }
-
-export default App;

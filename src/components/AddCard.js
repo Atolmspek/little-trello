@@ -17,7 +17,7 @@ function AddCard(props) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    props.addTask(Text);
+    props.addTask(Text, props.listId);
     setText("");
   };
 
