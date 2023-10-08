@@ -94,49 +94,46 @@ export default function App(props) {
       };
     });
   
-    // Actualiza el estado con las listas actualizadas
+    
     setLists(updatedLists);
-  
-    // Guarda en el almacenamiento local
     saveTasksToLocalStorage(updatedLists);
   }
 
   const handleDragEnd = (event) => {
-    console.log('Hola soy drag end');
+    
     const { active, over } = event;
-
-    setLists((currentLists) => {
-      const updatedLists = [...currentLists];
-
+  
+    setLists((lists) => {
+      const updatedLists = [...lists];
+  
+      const sourceCardId = active.id.idCard;
+      const destinationCardId = over.id.idCard;
+  
       const sourceListIndex = updatedLists.findIndex((list) =>
-        list.cards.some((card) => card.idCard === active.idCard)
+        list.cards.some((card) => card.idCard === sourceCardId)
       );
-      const targetListIndex = updatedLists.findIndex((list) =>
-        list.cards.some((card) => card.idCard === over.idCard)
+  
+      const destinationListIndex = updatedLists.findIndex((list) =>
+        list.cards.some((card) => card.idCard === destinationCardId)
       );
-
-      if (sourceListIndex === -1 || targetListIndex === -1) {
-        return currentLists;
+  
+      if (sourceListIndex !== -1 && destinationListIndex !== -1) {
+        const sourceList = updatedLists[sourceListIndex];
+        const destinationList = updatedLists[destinationListIndex];
+  
+        const sourceIndex = sourceList.cards.findIndex(
+          (card) => card.idCard === sourceCardId
+        );
+        const destinationIndex = destinationList.cards.findIndex(
+          (card) => card.idCard === destinationCardId
+        );
+  
+        if (sourceIndex !== -1 && destinationIndex !== -1) {
+          const [movedCard] = sourceList.cards.splice(sourceIndex, 1);
+          destinationList.cards.splice(destinationIndex, 0, movedCard);
+        }
       }
-
-      const sourceList = updatedLists[sourceListIndex];
-      const targetList = updatedLists[targetListIndex];
-
-      const oldIndex = sourceList.cards.findIndex(
-        (card) => card.idCard === active.idCard
-      );
-      const newIndex = targetList.cards.findIndex(
-        (card) => card.idCard === over.idCard
-      );
-
-      const movedCard = sourceList.cards[oldIndex];
-
-      //Removes card from the original position
-      sourceList.cards.splice(oldIndex, 1);
-
-      // Adds the card to the destination position
-      targetList.cards.splice(newIndex, 0, movedCard);
-
+  
       return updatedLists;
     });
   };
@@ -216,6 +213,7 @@ export default function App(props) {
                 >
                   {list.cards.map((card) => (
                     <Card
+                      card={card}
                       idCard={card.idCard}
                       text={card.text}
                       key={card.idCard}

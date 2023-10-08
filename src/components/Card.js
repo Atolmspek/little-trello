@@ -6,7 +6,7 @@ import { Text, Box, Button, ButtonGroup, Input, Spacer, FormControl, Flex } from
 function Card(props) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: props.idCard,
+      id: props.card
     });
 
   const [isHovered, setIsHovered] = useState(false);
