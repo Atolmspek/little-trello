@@ -18,31 +18,22 @@ import {
 } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 
+/* There seems to be a bug or something I'm missing with my lackluster React knowledge
+
+It seems you can't have the edit/delete buttons on the same container as the card component,
+otherwise react-dnd will consider every click on those buttons as a drag and drop attempt,
+killing the functionalty of said buttons.
+
+I've gotta try another library but for now this is it.
+*/
+
 export default function App(props) {
   //localStorage.clear();
-  const content = [
-    {
-      title: "Tarjeta 1",
-      listId: nanoid(),
-      cards: [
-        { text: "hola", idCard: nanoid() },
-        { text: "hallo", idCard: nanoid() },
-      ],
-    },
-    {
-      title: "Tarjeta 2",
-      listId: nanoid(),
-      cards: [
-        { text: "hi!", idCard: nanoid() },
-        { text: "Konichiwa", idCard: nanoid() },
-      ],
-    },
-  ];
 
   const localStorageJSON = localStorage.getItem("card");
   const userData = localStorageJSON ? JSON.parse(localStorageJSON) : [];
 
-  const [lists, setLists] = useState(content);
+  const [lists, setLists] = useState(userData);
 
   const saveTasksToLocalStorage = (updatedCards) =>
     localStorage.setItem("card", JSON.stringify(updatedCards));
@@ -100,7 +91,8 @@ export default function App(props) {
   }
 
   const handleDragEnd = (event) => {
-    
+
+    console.log('Drag end was called');
     const { active, over } = event;
   
     setLists((lists) => {
