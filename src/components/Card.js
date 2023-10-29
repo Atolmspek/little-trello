@@ -35,8 +35,8 @@ function Card(props) {
     setIsHovered(false);
   };
 
-  const handleSaveClick = () => {
-    console.log('card que dispara el evento ', props.idCard )
+  const handleSaveClick = (event) => {
+    event.preventDefault()
     props.editCard(props.idCard, newText);
     setEditing(false);
   };
@@ -48,6 +48,8 @@ function Card(props) {
   const handleNameChange = (e) => {
     setNewText(e.target.value);
   };
+
+  
 
   const viewTemplate = (
     <Box
@@ -76,17 +78,17 @@ function Card(props) {
             <Button
               size="sm"
               colorScheme="teal"
-              onClick={handleEditClick}
-              ml="auto" // Margen izquierdo automático para el botón Edit
+              ml="auto" 
+              onDoubleClick={handleEditClick}
             >
               Edit
             </Button>
             <Button
               size="sm"
               colorScheme="red"
-              onClick={() => handleDelete(props.idCard)}
-            >
-              X
+             onDoubleClick={() => handleDelete(props.idCard)}
+            //  onMouseDown={() => handleDelete(props.idCard)}
+              >X
             </Button>
             </ButtonGroup>
           </Flex>

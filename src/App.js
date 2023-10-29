@@ -8,6 +8,7 @@ import Card from "./components/Card";
 import AddCard from "./components/AddCard";
 import { nanoid } from "nanoid";
 import {
+FormControl,
   ChakraProvider,
   Container,
   Box,
@@ -18,14 +19,6 @@ import {
 } from "@chakra-ui/react";
 import Navbar from "./components/Navbar";
 
-/* There seems to be a bug or something I'm missing with my lackluster React knowledge
-
-It seems you can't have the edit/delete buttons on the same container as the card component,
-otherwise react-dnd will consider every click on those buttons as a drag and drop attempt,
-killing the functionalty of said buttons.
-
-I've gotta try another library but for now this is it.
-*/
 
 export default function App(props) {
   //localStorage.clear();
@@ -39,10 +32,12 @@ export default function App(props) {
     localStorage.setItem("card", JSON.stringify(updatedCards));
 
   const addCard = (text, listId) => {
+
     const newCard = { text, idCard: nanoid() };
 
     const updatedLists = lists.map((list) => {
-      if (listId === list.listId) {
+    
+      if (listId === list.id) {
         return {
           ...list,
           cards: [...list.cards, newCard],
@@ -169,7 +164,10 @@ export default function App(props) {
             <Box padding="4" bg="gray.100" borderRadius="lg" boxShadow="md">
               {list.editMode ? (
                 <Flex>
+                  <FormControl>
                   <Input
+                  
+                    required
                     value={list.editedTitle}
                     onChange={(e) => {
                       const updatedLists = lists.map((item, i) => {
@@ -181,9 +179,9 @@ export default function App(props) {
                       setLists(updatedLists);
                     }}
                   />
-                  <Button onClick={() => handleTitleEditSave(index)}>
+                  <Button type="submit" onClick={() => handleTitleEditSave(index)}>
                     Save
-                  </Button>
+                  </Button></FormControl>
                 </Flex>
               ) : (
                 <Text
@@ -195,6 +193,7 @@ export default function App(props) {
                   {list.title}
                 </Text>
               )}
+             
               <DndContext
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
@@ -211,12 +210,13 @@ export default function App(props) {
                       key={card.idCard}
                       deleteCard={deleteCard}
                       editCard={editCard}
+                      
                     />
                   ))}
                 </SortableContext>
               </DndContext>
-              <AddCard addTask={(text) => addCard(text, list.listId)} />
-            </Box>
+        
+              <AddCard addTask={(text) => addCard(text, list.id)}  />            </Box>
           </Container>
         ))}
       </Flex>
