@@ -1,22 +1,15 @@
 import React, { useState } from "react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Text, Box, Button, ButtonGroup, Input, Spacer, FormControl, Flex } from "@chakra-ui/react";
 
+
 function Card(props) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      id: props.card
-    });
+
 
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [newText, setNewText] = useState(props.text);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+
 
   const handleEditClick = () => {
     setEditing(true);
@@ -28,6 +21,7 @@ function Card(props) {
   };
 
   const handleMouseEnter = () => {
+    
     setIsHovered(true);
   };
 
@@ -52,12 +46,10 @@ function Card(props) {
   
 
   const viewTemplate = (
+   
+   
     <Box
       className="container"
-      style={style}
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
       boxShadow="base"
       bg="#CBD5E0"
       p={3}
@@ -68,8 +60,10 @@ function Card(props) {
       onMouseLeave={handleMouseLeave}
     >
 
-    
+
+
       <Text>{props.text}</Text>
+     
       <Spacer/>
         {isHovered && (
           <Flex minWidth='max-content' alignItems='right' > 
@@ -87,7 +81,7 @@ function Card(props) {
               size="sm"
               colorScheme="red"
              onDoubleClick={() => handleDelete(props.idCard)}
-            //  onMouseDown={() => handleDelete(props.idCard)}
+            //  onMouseDown={() => handleDelete(props.idCard)} Plausible solution as well but it causes and exception when there's only an item on the list.
               >X
             </Button>
             </ButtonGroup>
@@ -95,6 +89,8 @@ function Card(props) {
         )}
       
     </Box>
+    
+ 
     
   );
 
@@ -118,6 +114,7 @@ function Card(props) {
   );
 
   return (
+   
     <Box
       
     >

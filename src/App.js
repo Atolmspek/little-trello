@@ -1,14 +1,9 @@
 import React, { useState } from "react";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import Card from "./components/Card";
 import AddCard from "./components/AddCard";
 import { nanoid } from "nanoid";
 import {
-FormControl,
+  FormControl,
   ChakraProvider,
   Container,
   Box,
@@ -17,12 +12,12 @@ FormControl,
   Input,
   Button,
 } from "@chakra-ui/react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
 import Navbar from "./components/Navbar";
 
-
-export default function App(props) {
+export default function App() {
   //localStorage.clear();
-
   const localStorageJSON = localStorage.getItem("card");
   const userData = localStorageJSON ? JSON.parse(localStorageJSON) : [];
 
@@ -32,11 +27,8 @@ export default function App(props) {
     localStorage.setItem("card", JSON.stringify(updatedCards));
 
   const addCard = (text, listId) => {
-
     const newCard = { text, idCard: nanoid() };
-
     const updatedLists = lists.map((list) => {
-    
       if (listId === list.id) {
         return {
           ...list,
@@ -48,6 +40,36 @@ export default function App(props) {
 
     setLists(updatedLists);
     saveTasksToLocalStorage(updatedLists);
+  };
+
+  const createList = () => {
+    const newList = {
+      title: "Click to edit me",
+      id: nanoid(),
+      cards: [],
+    };
+    setLists([...lists, newList]);
+  };
+
+  const handleTitleEditSave = (index) => {
+    const updatedLists = lists.map((list, listIndex) => {
+      if (listIndex === index) {
+        return { ...list, title: list.editedTitle, editMode: false };
+      }
+      return list;
+    });
+    setLists(updatedLists);
+    saveTasksToLocalStorage(updatedLists);
+  };
+
+  const handleTitleClick = (index) => {
+    const updatedLists = lists.map((list, listIndex) => {
+      if (listIndex === index) {
+        return { ...list, editMode: true };
+      }
+      return list;
+    });
+    setLists(updatedLists);
   };
 
   const deleteCard = (idCard) => {
@@ -62,164 +84,171 @@ export default function App(props) {
   };
 
   function editCard(idCard, newText) {
-   
     const updatedLists = lists.map((list) => {
-   
       const updatedCards = list.cards.map((card) => {
         if (idCard === card.idCard) {
-          
           return { ...card, text: newText };
         }
         return card;
       });
-  
-     
+
       return {
         ...list,
         cards: updatedCards,
       };
     });
-  
-    
+
     setLists(updatedLists);
     saveTasksToLocalStorage(updatedLists);
   }
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (result) => {
+    if (!result.destination) {
+      return; 
+    }
 
-    console.log('Drag end was called');
-    const { active, over } = event;
+    const { source, destination } = result;
+
+    const move = (source, destination, droppableSource, droppableDestination) => {
+      const sourceClone = Array.from(source);
+      const destClone = Array.from(destination);
+      const [removed] = sourceClone.splice(droppableSource.index, 1);
   
-    setLists((lists) => {
-      const updatedLists = [...lists];
+      destClone.splice(droppableDestination.index, 0, removed);
   
-      const sourceCardId = active.id.idCard;
-      const destinationCardId = over.id.idCard;
+      const result = {};
+      result[droppableSource.droppableId] = sourceClone;
+      result[droppableDestination.droppableId] = destClone;
   
-      const sourceListIndex = updatedLists.findIndex((list) =>
-        list.cards.some((card) => card.idCard === sourceCardId)
-      );
-  
-      const destinationListIndex = updatedLists.findIndex((list) =>
-        list.cards.some((card) => card.idCard === destinationCardId)
-      );
-  
+      return result;
+  };
+
+    if (source.droppableId === destination.droppableId) {
+      // Movement on same list
+      const listIndex = lists.findIndex((list) => list.id === source.droppableId);
+      if (listIndex !== -1) {
+        const list = lists[listIndex];
+        const updatedCards = [...list.cards];
+        const [movedCard] = updatedCards.splice(source.index, 1);
+        updatedCards.splice(destination.index, 0, movedCard);
+        const updatedLists = [...lists];
+        updatedLists[listIndex] = { ...list, cards: updatedCards };
+        setLists(updatedLists);
+        saveTasksToLocalStorage(updatedLists);
+      }
+    } else {
+      // Movement among different lists
+      const sourceListIndex = lists.findIndex((list) => list.id === source.droppableId);
+      const destinationListIndex = lists.findIndex((list) => list.id === destination.droppableId);
+
       if (sourceListIndex !== -1 && destinationListIndex !== -1) {
-        const sourceList = updatedLists[sourceListIndex];
-        const destinationList = updatedLists[destinationListIndex];
-  
-        const sourceIndex = sourceList.cards.findIndex(
-          (card) => card.idCard === sourceCardId
-        );
-        const destinationIndex = destinationList.cards.findIndex(
-          (card) => card.idCard === destinationCardId
-        );
-  
-        if (sourceIndex !== -1 && destinationIndex !== -1) {
-          const [movedCard] = sourceList.cards.splice(sourceIndex, 1);
-          destinationList.cards.splice(destinationIndex, 0, movedCard);
-        }
-      }
-  
-      return updatedLists;
-    });
-  };
+        const sourceList = lists[sourceListIndex];
+        const destinationList = lists[destinationListIndex];
+        const updatedSourceCards = [...sourceList.cards];
+        const updatedDestinationCards = [...destinationList.cards];
 
-  const createList = () => {
-    const newList = {
-      title: "Click to edit me",
-      id: nanoid(),
-      cards: [],
-    };
-    setLists([...lists, newList]);
-  };
 
-  const handleTitleClick = (index) => {
-    const updatedLists = lists.map((list, listIndex) => {
-      if (listIndex === index) {
-        return { ...list, editMode: true };
-      }
-      return list;
-    });
-    setLists(updatedLists);
-  };
+        const [movedCard] = updatedSourceCards.splice(source.index, 1);
+        updatedDestinationCards.splice(destination.index, 0, movedCard);
 
-  const handleTitleEditSave = (index) => {
-    const updatedLists = lists.map((list, listIndex) => {
-      if (listIndex === index) {
-        return { ...list, title: list.editedTitle, editMode: false };
+        const updatedLists = [...lists];
+        updatedLists[sourceListIndex] = { ...sourceList, cards: updatedSourceCards };
+        updatedLists[destinationListIndex] = { ...destinationList, cards: updatedDestinationCards };
+
+        setLists(updatedLists);
+        saveTasksToLocalStorage(updatedLists);
       }
-      return list;
-    });
-    setLists(updatedLists);
-    saveTasksToLocalStorage(updatedLists);
+    }
   };
 
   return (
     <ChakraProvider>
       <Navbar createList={createList} />
-      <Flex flexWrap="wrap">
-        {lists.map((list, index) => (
-          <Container key={list.listId} maxW="400px" mt={5}>
-            <Box padding="4" bg="gray.100" borderRadius="lg" boxShadow="md">
-              {list.editMode ? (
-                <Flex>
-                  <FormControl>
-                  <Input
-                  
-                    required
-                    value={list.editedTitle}
-                    onChange={(e) => {
-                      const updatedLists = lists.map((item, i) => {
-                        if (i === index) {
-                          return { ...item, editedTitle: e.target.value };
-                        }
-                        return item;
-                      });
-                      setLists(updatedLists);
-                    }}
-                  />
-                  <Button type="submit" onClick={() => handleTitleEditSave(index)}>
-                    Save
-                  </Button></FormControl>
-                </Flex>
-              ) : (
-                <Text
-                  fontWeight={700}
-                  mb={3}
-                  onClick={() => handleTitleClick(index)}
-                  cursor="pointer"
-                >
-                  {list.title}
-                </Text>
+      <DragDropContext onDragEnd={(result) => handleDragEnd(result, result.source, result.destination)}>
+        <Flex flexWrap="wrap">
+          {lists.map((list, index) => (
+            <Droppable droppableId={list.id} key={list.id}>
+              {(provided) => (
+                <div ref={provided.innerRef}>
+                  <Container key={list.id} maxW="400px" mt={5}>
+                    <Box
+                      padding="4"
+                      bg="gray.100"
+                      borderRadius="lg"
+                      boxShadow="md"
+                    >
+                      {list.editMode ? (
+                        <Flex>
+                          <FormControl>
+                            <Input
+                              required
+                              value={list.editedTitle}
+                              onChange={(e) => {
+                                const updatedLists = lists.map((item, i) => {
+                                  if (i === index) {
+                                    return {
+                                      ...item,
+                                      editedTitle: e.target.value,
+                                    };
+                                  }
+                                  return item;
+                                });
+                                setLists(updatedLists);
+                              }}
+                            />
+                            <Button
+                              type="submit"
+                              onClick={() => handleTitleEditSave(index)}
+                            >
+                              Save
+                            </Button>
+                          </FormControl>
+                        </Flex>
+                      ) : (
+                        <Text
+                          fontWeight={700}
+                          mb={3}
+                          onClick={() => handleTitleClick(index)}
+                          cursor="pointer"
+                        >
+                          {list.title}
+                        </Text>
+                      )}
+                      <div>
+                        {list.cards.map((card, cardIndex) => (
+                          <Draggable
+                            key={card.idCard}
+                            draggableId={card.idCard}
+                            index={cardIndex}
+                          >
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                <Card
+                                  idCard={card.idCard}
+                                  text={card.text}
+                                  key={card.idCard}
+                                  deleteCard={deleteCard}
+                                  editCard={editCard}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                      <AddCard addTask={(text) => addCard(text, list.id)} />{" "}
+                    </Box>
+                  </Container>
+                </div>
               )}
-             
-              <DndContext
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={list.cards}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {list.cards.map((card) => (
-                    <Card
-                      card={card}
-                      idCard={card.idCard}
-                      text={card.text}
-                      key={card.idCard}
-                      deleteCard={deleteCard}
-                      editCard={editCard}
-                      
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
-        
-              <AddCard addTask={(text) => addCard(text, list.id)}  />            </Box>
-          </Container>
-        ))}
-      </Flex>
+            </Droppable>
+          ))}
+        </Flex>
+      </DragDropContext>
     </ChakraProvider>
   );
 }

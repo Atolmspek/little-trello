@@ -5,6 +5,7 @@ import {
   FormControl,
   Input,
 } from "@chakra-ui/react";
+import {nanoid} from 'nanoid';
 
 function AddCard(props) {
   const [Text, setText] = useState("");
@@ -24,10 +25,12 @@ function AddCard(props) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    props.addTask(Text, props.id);
+
+    props.addTask(Text);
     setText("");
     setAdding(false);
+
+    
   };
 
   const newCard = (
