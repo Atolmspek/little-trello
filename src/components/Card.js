@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Text, Box, Button, ButtonGroup, Input, Spacer, FormControl, Flex } from "@chakra-ui/react";
-
+import '../css/Card.css'
 
 function Card(props) {
 
@@ -62,7 +62,7 @@ function Card(props) {
 
 
 
-      <Text>{props.text}</Text>
+      <Text className="overflow">{props.text}</Text>
      
       <Spacer/>
         {isHovered && (
